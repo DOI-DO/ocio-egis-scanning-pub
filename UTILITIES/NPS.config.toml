@@ -1,0 +1,103 @@
+# ==============================================================================
+# org1.config.toml
+# ==============================================================================
+# ORG-SPECIFIC configuration for one organization's PORTAL_* script runs.
+#
+# ------------------------------------------------------------------------------
+# [common] - values shared by BOTH portal and agol unless overridden below.
+# ------------------------------------------------------------------------------
+[common]
+# *** NEW / MANDATORY *** Short label for this organization. Every org config file MUST
+# set this to something distinct so runs against different orgs are never
+# confused with each other.
+org-name = "ORG"
+
+# this is where all output will be saved on the computer that executes the inventory scan
+output-dir  = "C:\\temp\\reports"
+
+# email server for sending notices
+smtp-server = "smtp.server.com"
+
+# email-to accepts a single address or a comma-separated list (see note above).
+email-to    = "some@mail.com, person@mail.com"
+email-from  = "some@mail.com"
+
+# Maximum total attachment size (MB) your mail server will accept. See the
+# "EMAIL ATTACHMENT SIZE LIMIT" note above for exactly how this is used.
+max-email-mb = 20
+
+# On-disk location of azcopy.exe on THIS machine. Used only by
+# PORTAL_STACK_LOG_DUMP.py when run with --destination blob. This is a
+# per-machine install path, not a secret -- the SAS token used to
+# authenticate to the storage account is retrieved separately from Windows
+# Credential Manager (see PORTAL_STACK_LOG_DUMP.py's --destination blob
+# documentation), never stored here. Leave blank if this machine never uses
+# --destination blob.
+azcopy-path = "D:\\User\\azcopy.exe"
+
+# Azure Blob settings
+# currently only tooled to use SAS Tokens
+logdump-blob-container = "logdump"
+logdump-blob-account = "AZStorageAccountName"
+
+logmirror-blob-container = "logmirror"
+logmirror-blob-account = "AZStorageAccountName"
+
+# ------------------------------------------------------------------------------
+# [portal] - ArcGIS Enterprise Portal target (--target portal).
+# ------------------------------------------------------------------------------
+[portal]
+portal-url      = "https://enterprise.com/portal"
+# domain suffice is the from the fqdn of any server name
+# not necessarily from the URL of your portal if you have a DNS alias for it
+domain-suffix = "enterprise.com"
+# in windows credential manager this is the User Name:
+username        = "scheduledtask"
+# in windows credential manager this is the Internet or network address:
+keyring-service = "PORTAL"
+# On-disk Portal content\items directory for the orphan-scan scripts (Portal only):
+# Always use UNC, not drive letter path
+content-items-dir = "\\\\big_servergis-f5e6\\gis01\\PRODPTL\\content\\items"
+
+# ------------------------------------------------------------------------------
+# --- Hosting server / Data Store settings ------------------------------------
+# ------------------------------------------------------------------------------
+# portal hosting server url
+hosting-url        = "https://enterprise.com/server"
+
+# data store server (make sure is primary if HA!)
+# this is used if topology autodiscovery can't find primary datastore
+db-host            = "datatore_fqdn"
+
+# this is always needed for the Portal-only scans that touch the data store
+# pg_hba.conf on the data store postgre server will need to be updated to allow scan
+# from the scanning server
+db-port            = 9876
+# make sure pg_hba.conf is configured to allow login from this scanner server!
+# this is the name of the hosting server relational data store as found in .\Program Files\DataStore\tools\listmanageduser.bat
+dbname             = "hosting_datastore_db_name"
+# this is the name of the hosting server relational data store admin user as found in .\Program Files\DataStore\tools\listadminusers.bat
+# which you will set in windows credential manager as the User Name:
+db-user            = "hosting_datastore_db_admin"
+# in windows credential manager this is the Internet or network address
+keyring-service-db = "DATASTORE"
+# this is the hosting server input directory. Always use UNC, not drive letter path
+arcgisinput        = "\\\\big_servergis-f5e6\\gis01\\PRODHOST\\arcgissystem\\arcgisinput"
+# db-prefix        = ""   # optional; defaults to dbname
+
+# --- Managed schema owner (Data Store replica owner) -------------------------
+# this is the name of the hosting server relational data store admin user as found in .\Program Files\DataStore\tools\listmanageduser.bat
+# which you will set in windows credential manager as the User Name:
+db-user-mu            = "hosting_datastore_schema_owner"
+# in windows credential manager this is the Internet or network address:
+keyring-service-db-mu = "DATASTORE_MU"
+
+# ------------------------------------------------------------------------------
+# [agol] - ArcGIS Online target (--target agol).
+# ------------------------------------------------------------------------------
+[agol]
+portal-url      = "https://org.maps.arcgis.com/home"
+# in windows credential manager this is the User Name:
+username        = "ORG_Scheduled_Task"
+# in windows credential manager this is the Internet or network address:
+keyring-service = "AGOL"
