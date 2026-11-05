@@ -1,0 +1,141 @@
+# ==============================================================================
+# UTILITIES/config.toml
+# ==============================================================================
+# Shared configuration for all PORTAL_* scripts.
+#
+# This file lets you set the common settings ONCE (portal-url, username,
+# keyring-service, output-dir, smtp-server, email-to, email-from,
+# max-email-mb) instead of passing them on every command line.
+#
+# HOW IT WORKS
+# ------------
+#   * Choose the target at RUN TIME with the required --target argument:
+#         python SCRIPT.py --target portal   ...reads the [portal] section
+#         python SCRIPT.py --target agol     ...reads the [agol]   section
+#     (There is no "active" key in this file; the script tells the config
+#      which section to read.)
+#   * Fill in the [portal] and [agol] sections with your environment values.
+#   * Any value can still be overridden per-run on the command line
+#     (a CLI flag always wins over this file).
+#
+# PRECEDENCE (highest first):
+#     1. Command-line argument (e.g. --portal-url ...)
+#     2. The matching value in the chosen --target section ([portal]/[agol])
+#     3. The value in [common] below (shared by both targets)
+#
+# Anything you leave blank ("") here must be supplied on the command line for
+# scripts that require it.
+#
+# EMAIL RECIPIENTS
+# ----------------
+# 'email-to' accepts EITHER a single address OR several addresses separated by
+# commas (semicolons are also accepted). The completion email is delivered to
+# every address listed. Examples:
+#         email-to = "some@mail.com"
+#         email-to = "some@mail.com, thing@mail.com, another@mail.com"
+# 'email-from' is always a single address.
+#
+# EMAIL ATTACHMENT SIZE LIMIT (max-email-mb)
+# -------------------------------------------
+# 'max-email-mb' is the maximum TOTAL size (MB) of attachments your mail
+# server/relay will accept on a single message. Every PORTAL_* script uses
+# this value (via UTILITIES/emailer.py's gather_attachments()) to decide how
+# to attach its output file(s):
+#     1. If the output file(s), in their ORIGINAL unzipped form, fit under
+#        this limit (together with the log file) -> they are attached as-is.
+#     2. If they don't fit, the output file(s) (NOT the log) are zipped and
+#        re-checked against the same limit -> if the zip fits, the zip is
+#        attached instead of the originals.
+#     3. If even the zipped copy is still over the limit, NOTHING but the log
+#        is attached, and the email body explains that the file was too large
+#        (even zipped) and states exactly where it can be found on disk.
+# If left blank/omitted, a built-in default of 20 MB is used
+# (UTILITIES.emailer.MAX_ATTACHMENTS_MB).
+# ==============================================================================
+
+
+# ------------------------------------------------------------------------------
+# [common] - values shared by BOTH portal and agol unless overridden below.
+# ------------------------------------------------------------------------------
+[common]
+output-dir  = "C:\\temp\\reports"
+smtp-server = "smtp.server.com"
+# email-to accepts a single address or a comma-separated list (see note above).
+email-to    = "some@mail.com, person@mail.com"
+email-from  = "some@mail.com"
+# Maximum total attachment size (MB) your mail server will accept. See the
+# "EMAIL ATTACHMENT SIZE LIMIT" note above for exactly how this is used.
+max-email-mb = 20
+# content-items-dir is only used by the two content-directory orphan-scan
+# scripts (PORTAL_CONTENT_ORPHAN_ITEMS_BU_AND_REMOVE.py and
+# PORTAL_ITEM_ID_COMPARE_TO_CONTENT_DIR.py). AGOL has no on-disk content
+# directory, so this is normally set only under [portal] below. Leave blank
+# here. Can be overridden with --content-items-dir.
+content-items-dir = ""
+
+
+# ------------------------------------------------------------------------------
+# [portal] - ArcGIS Enterprise Portal target (--target portal).
+# ------------------------------------------------------------------------------
+[portal]
+portal-url      = "https://enterprise.com/portal"
+username        = "PORTAL_ADMIN"
+keyring-service = "PORTAL"
+# On-disk content\items directory for the orphan-scan scripts (Portal only):
+content-items-dir = "\\\\big_servergis-f5e6\\gis01\\PRODPTL\\content\\items"
+
+# --- Hosting server / Data Store settings ------------------------------------
+# Used by PORTAL_HOSTING_SVR_DS_INVENTORY.py. These are NOT part of the shared
+# CONFIG_KEYS, so the inventory script reads them directly from this section
+# (falling back to [common], then to the flag defaults). Any of them can be
+# overridden on the command line.
+#
+#   hosting-url        Hosting GIS Server admin URL (context is often /server).
+#   db-host            Data Store host (from `describe datastore`).
+#   db-port            Data Store port (default 9876).
+#   dbname             Data Store database name.
+#   db-user            DB admin to CONNECT AS (superuser / pg_monitor, NOT sde).
+#   keyring-service-db Keyring service holding the DB password (user = db-user).
+#   arcgisinput        Hosting server's arcgisinput folder (.msd scan). Blank
+#                      to skip the .msd scan. A UNC path is fine.
+#   db-prefix          Optional: DB name used to anchor db.schema.table matches
+#                      in .msd files. Defaults to dbname if omitted.
+#
+# NOTE: the DB password comes from keyring (service = keyring-service-db,
+# username = db-user), NOT from this file. Store it with, e.g.:
+#     python -c "import keyring; keyring.set_password('DATASTORE','hosting_datastore_db_admin','<pw>')"
+# The portal password likewise comes from keyring (service = keyring-service,
+# username = username), i.e. service 'PORTAL', user 'PORTAL_ADMIN'.
+hosting-url        = "https://enterprise.com/server"
+db-host            = "datatore_fqdn"
+db-port            = 9876
+dbname             = "hosting_datastore_db_name"
+db-user            = "hosting_datastore_db_admin"
+keyring-service-db = "DATASTORE"
+arcgisinput        = "\\\\big_servergis-f5e6\\gis01\\PRODHOST\\arcgissystem\\arcgisinput"
+# db-prefix        = ""   # optional; defaults to dbname
+
+# --- Managed schema owner (Data Store replica owner) -------------------------
+# Used by DELETE_ORPHAN_SDE_REPLICAS.py. UnregisterReplica must connect AS the
+# geodatabase SCHEMA OWNER of the replicas (e.g. hosting_datastore_schema_owner), NOT the pg_monitor
+# admin (db-user). These are read directly from this [portal] section.
+#
+#   db-user-mu             Schema-owner DB user to CONNECT AS (owns the
+#                          hosting_datastore_schema_owner.SDS_FS_* replicas).
+#   keyring-service-db-mu  Keyring service holding that user's password
+#                          (username = db-user-mu). The password itself lives in
+#                          keyring / Windows Credential Manager, never here.
+#
+# Store the password once with, e.g.:
+#   python -c "import keyring; keyring.set_password('DATASTORE_MU','hosting_datastore_schema_owner','<pw>')"
+db-user-mu            = "hosting_datastore_schema_owner"
+keyring-service-db-mu = "DATASTORE_MU"
+
+
+# ------------------------------------------------------------------------------
+# [agol] - ArcGIS Online target (--target agol).
+# ------------------------------------------------------------------------------
+[agol]
+portal-url      = "https://org.maps.arcgis.com/home"
+username        = "AGOL_ADMIN"
+keyring-service = "AGOL"

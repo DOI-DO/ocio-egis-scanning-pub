@@ -1,0 +1,84 @@
+# ==============================================================================
+# org1.config.toml
+# ==============================================================================
+# ORG-SPECIFIC configuration for one organization's PORTAL_* script runs.
+#
+# ------------------------------------------------------------------------------
+# [common] - values shared by BOTH portal and agol unless overridden below.
+# ------------------------------------------------------------------------------
+[common]
+# *** NEW / MANDATORY *** Short label for this organization. Every org config file MUST
+# set this to something distinct so runs against different orgs are never
+# confused with each other.
+org-name = "ORG"
+
+# this is where all output will be saved on the computer that executes the inventory scan
+output-dir  = "C:\\temp\\reports"
+
+smtp-server = "smtp.server.com"
+
+# email-to accepts a single address or a comma-separated list (see note above).
+email-to    = "some@mail.com, person@mail.com"
+email-from  = "some@mail.com"
+
+# Maximum total attachment size (MB) your mail server will accept. See the
+# "EMAIL ATTACHMENT SIZE LIMIT" note above for exactly how this is used.
+max-email-mb = 20
+
+# content-items-dir is only used by the two content-directory orphan-scan
+# scripts (PORTAL_CONTENT_ORPHAN_ITEMS_BU_AND_REMOVE.py and
+# PORTAL_ITEM_ID_COMPARE_TO_CONTENT_DIR.py). AGOL has no on-disk content
+# directory, so this is normally set only under [portal] below. Leave blank
+# here. Can be overridden with --content-items-dir.
+content-items-dir = ""
+
+# *** NEW *** On-disk location of azcopy.exe on THIS machine. Used only by
+# PORTAL_STACK_LOG_DUMP.py when run with --destination blob. This is a
+# per-machine install path, not a secret -- the SAS token used to
+# authenticate to the storage account is retrieved separately from Windows
+# Credential Manager (see PORTAL_STACK_LOG_DUMP.py's --destination blob
+# documentation), never stored here. Leave blank if this machine never uses
+# --destination blob.
+azcopy-path = "C:\\Program Files\\azcopy\\azcopy.exe"
+
+
+# ------------------------------------------------------------------------------
+# [portal] - ArcGIS Enterprise Portal target (--target portal).
+# ------------------------------------------------------------------------------
+[portal]
+portal-url      = "https://enterprise.com/portal"
+# in windows credential manager this is the User Name:
+username        = "PORTAL_ADMIN"
+# in windows credential manager this is the Internet or network address:
+keyring-service = "PORTAL"
+# On-disk content\items directory for the orphan-scan scripts (Portal only):
+content-items-dir = "\\\\big_servergis-f5e6\\gis01\\PRODPTL\\content\\items"
+
+# ------------------------------------------------------------------------------
+# --- Hosting server / Data Store settings ------------------------------------
+# ------------------------------------------------------------------------------
+# portal hosting server url
+hosting-url        = "https://enterprise.com/server"
+
+# data store server (make sure is primary if HA!)
+db-host            = "datatore_fqdn"
+
+db-port            = 9876
+dbname             = "hosting_datastore_db_name"
+db-user            = "hosting_datastore_db_admin"
+keyring-service-db = "DATASTORE"
+arcgisinput        = "\\\\big_servergis-f5e6\\gis01\\PRODHOST\\arcgissystem\\arcgisinput"
+# db-prefix        = ""   # optional; defaults to dbname
+
+# --- Managed schema owner (Data Store replica owner) -------------------------
+
+db-user-mu            = "hosting_datastore_schema_owner"
+keyring-service-db-mu = "DATASTORE_MU"
+
+# ------------------------------------------------------------------------------
+# [agol] - ArcGIS Online target (--target agol).
+# ------------------------------------------------------------------------------
+[agol]
+portal-url      = "https://org.maps.arcgis.com/home"
+username        = "AGOL_ADMIN"
+keyring-service = "AGOL"
