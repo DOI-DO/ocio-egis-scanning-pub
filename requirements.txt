@@ -1,0 +1,127 @@
+# ==============================================================================
+# requirements.txt
+# ==============================================================================
+# Complete Python package dependencies for the UTILITIES folder and all
+# PORTAL_* / PORTAL_STACK_* scripts that use it.
+#
+# INSTALLATION:
+#   pip install -r requirements.txt
+#
+# PYTHON VERSION REQUIREMENT:
+#   Python 3.10 or 3.11+ (3.11+ recommended; tomllib is built-in)
+#
+# ==============================================================================
+
+# ==============================================================================
+# TIER 1: CORE DEPENDENCIES (Always Required)
+# ==============================================================================
+
+# ArcGIS SDK for Python - Portal/AGOL connectivity and REST API
+# Used by: gis_connect.py, restutils.py, auth.py
+# Provides: GIS connection, item/group/user management, content search
+arcgis>=2.1.0
+
+# HTTP requests library - REST API calls
+# Used by: restutils.py, secure_session.py, path_discovery.py, 
+#          stack_discovery.py, arcgis_rest.py, azcopy_utils.py
+# Provides: HTTP GET/POST, connection pooling, retry logic
+requests>=2.25.0
+
+# Windows Credential Manager integration
+# Used by: gis_connect.py, azcopy_utils.py
+# Provides: Secure password/token retrieval from Windows Credential Manager
+keyring>=20.0.0
+
+# HTTP connection pooling and retry logic
+# Used by: restutils.py, secure_session.py (via requests)
+# Provides: Connection pool management, exponential backoff retries
+# NOTE: Automatically installed as a dependency of requests; listed for clarity
+urllib3>=1.26.0
+
+# ==============================================================================
+# TIER 2: CONDITIONAL DEPENDENCIES
+# ==============================================================================
+
+# OS-native certificate store verification (TLS/SSL)
+# Used by: gis_connect.py, secure_session.py
+# Condition: ONLY when using verify_mode=VerifyMode.OS_TRUST_STORE
+# Provides: Verification against OS certificate store instead of certifi bundle
+# NOTE: Optional - if not installed, error messages guide installation
+truststore>=0.7.0; python_version >= '3.10'
+
+# TOML configuration file parsing (for org config .toml files)
+# Used by: config.py
+# Condition: Python 3.10 and earlier (Python 3.11+ has tomllib built-in)
+# Provides: Parse organizational configuration files (org1.config.toml, etc.)
+# NOTE: tomllib is built-in to Python 3.11+; tomli is a backport for 3.10
+tomli>=1.1.0; python_version < '3.11'
+
+# ==============================================================================
+# TIER 3: WINDOWS-SPECIFIC DEPENDENCIES
+# ==============================================================================
+
+# Windows Extensions for Python
+# Used by: path_discovery.py (remote registry access)
+# Condition: Windows platform only
+# Provides: Enhanced Windows API access, COM support, registry operations
+# NOTE: winreg is built-in Windows stdlib; pywin32 adds advanced features
+pywin32>=300; sys_platform == 'win32'
+
+# ==============================================================================
+# TIER 4: SYSTEM MONITORING (Optional/Future Use)
+# ==============================================================================
+
+# Process and system monitoring utilities
+# Currently NOT used in uploaded UTILITIES code
+# Included for completeness; may be needed by future scripts or admin tools
+# Provides: CPU, memory, disk, network monitoring; process management
+psutil>=5.9.0
+
+# ==============================================================================
+# NOTES & WARNINGS
+# ==============================================================================
+#
+# 1. NO AUTO-INSTALLATION: This project does NOT automatically install
+#    packages. All dependencies must be pre-installed via pip.
+#
+# 2. SECURITY: Credentials are stored in Windows Credential Manager
+#    (encrypted by Windows). Never store passwords in code or config files.
+#
+# 3. TRUSTSTORE: The truststore package is optional but REQUIRED if you use
+#    verify_mode=VerifyMode.OS_TRUST_STORE for TLS verification. If not
+#    installed when needed, an ImportError with installation instructions
+#    will be raised.
+#
+# 4. TOMLI: Only needed for Python 3.10 and earlier. Python 3.11+ includes
+#    tomllib in the standard library. This is automatically skipped by pip
+#    on Python 3.11+.
+#
+# 5. PYWIN32: Required for Windows systems. If using a non-Windows platform
+#    (Linux, macOS), pip will automatically skip this due to the platform
+#    marker (sys_platform == 'win32').
+#
+# 6. AZCOPY.EXE: Not a Python package. Must be installed separately if using
+#    --destination blob for Azure Blob upload. Download from:
+#    https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10
+#
+# 7. ROBOCOPY: Windows native utility (usually pre-installed). Used by
+#    robocopy_utils.py for local/UNC file copying. Not a pip package.
+#
+# 8. PSYCOPG2: PostgreSQL adapter. NOT included here because it is NOT used
+#    by the UTILITIES folder. If your Data Store scripts require it, install
+#    separately: pip install psycopg2-binary (binary is easier to install)
+#
+# ==============================================================================
+# VERSION NOTES
+# ==============================================================================
+#
+# arcgis:   2.1.0+ tested; may work with earlier 2.x releases
+# requests: 2.25.0+ (modern HTTP/2 support); older 2.x may work
+# keyring:  20.0.0+ (modern Windows Credential Manager support)
+# urllib3:  1.26.0+ (security fixes, connection management)
+# truststore: 0.7.0+ (latest stable for SSL cert verification)
+# tomli:    1.1.0+ (latest stable TOML parser)
+# pywin32:  300+ (2021+ builds, recommended for Windows 10/11)
+# psutil:   5.9.0+ (cross-platform; 5.9.0 from 2022)
+#
+# ==============================================================================
